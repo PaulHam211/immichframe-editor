@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ImmichFrame Editor</title>
+    <style>
+        * { box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #1a1a2e; color: #eee; margin: 0; padding: 20px; }
+        .container { max-width: 900px; margin: 0 auto; }
+        h1 { color: #f5deb3; margin-bottom: 5px; }
+        h2 { color: #f5deb3; font-size: 1.1rem; margin-top: 30px; border-bottom: 1px solid #333; padding-bottom: 8px; }
+        .subtitle { color: #888; font-size: 0.9rem; margin-bottom: 20px; }
+        .card { background: #16213e; border-radius: 12px; padding: 20px; margin-bottom: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.3); }
+        .form-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 5px; color: #f5deb3; font-weight: 500; }
+        input[type="number"], input[type="text"], select { width: 100%; padding: 8px 12px; border-radius: 6px; border: 1px solid #333; background: #0f3460; color: #fff; font-size: 14px; }
+        input[type="number"] { width: 120px; }
+        .btn { padding: 10px 20px; border-radius: 8px; border: none; cursor: pointer; font-size: 14px; font-weight: 600; }
+        .btn-primary { background: #e94560; color: #fff; }
+        .btn-primary:hover { background: #d63850; }
+        .btn-secondary { background: #0f3460; color: #fff; }
+        .btn-secondary:hover { background: #1a4a7a; }
+        .flash { padding: 12px 16px; border-radius: 8px; margin-bottom: 15px; }
+        .flash-success { background: #27ae60; color: #fff; }
+        .flash-info { background: #2980b9; color: #fff; }
+        .flash-error { background: #e74c3c; color: #fff; }
+        .people-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px; }
+        .person-item { background: #0f3460; border-radius: 8px; padding: 10px 12px; display: flex; align-items: center; gap: 10px; }
+        .person-item input[type="checkbox"] { width: 18px; height: 18px; cursor: pointer; flex-shrink: 0; }
+        .person-item label { color: #fff; cursor: pointer; margin: 0; font-weight: 400; flex: 1; }
+        .person-item img { width: 36px; height: 36px; border-radius: 50%; object-fit: cover; flex-shrink: 0; background: #333; }
+        .section-title { font-size: 0.85rem; color: #888; margin-bottom: 10px; text-transform: uppercase; letter-spacing: 1px; }
+        .button-row { display: flex; gap: 10px; margin-top: 20px; }
+        .toggle-row { display: flex; gap: 15px; flex-wrap: wrap; }
+        .toggle-item { display: flex; align-items: center; gap: 6px; }
+        .toggle-item input[type="checkbox"] { width: 16px; height: 16px; }
+        .toggle-item label { font-size: 0.9rem; margin: 0; color: #ccc; }
+        .info-box { background: #0f3460; border-left: 4px solid #e94560; padding: 12px 16px; border-radius: 6px; font-size: 0.85rem; color: #aaa; margin-bottom: 15px; }
+        details { border-radius: 8px; overflow: hidden; }
+        summary { background: #0f3460; padding: 12px 16px; cursor: pointer; font-weight: 600; font-size: 1rem; color: #f5deb3; list-style: none; display: flex; justify-content: space-between; align-items: center; }
+        summary::-webkit-details-marker { display: none; }
+        summary:after { content: '▶'; font-size: 0.8rem; transition: transform 0.2s; }
+        details[open] summary:after { transform: rotate(90deg); }
+        details[open] summary { border-radius: 8px 8px 0 0; }
+        .collapsible-content { background: #16213e; padding: 15px; }
+        .section-header { display: flex; align-items: center; gap: 10px; }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>🖼️ ImmichFrame Editor</h1>
+    <p class="subtitle">Change who's displayed without editing YAML files</p>
+    
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% for category, message in messages %}
+    <div class="flash flash-{{ category }}">{{ message }}</div>
+    {% endfor %}
+    {% endwith %}
+    
+    <form method="POST" action="{{ url_for('save') }}">
+        
+        <div class="card">
+            <details>
+                <summary>
+                    <span class="section-header">👥 People to Display</span>
+                </summary>
+                <div class="collapsible-content">
+                    <p class="section-title">Select the people to show on the frame</p>
+                    <div style="margin-bottom:10px; display:flex; gap:8px; align-items:center">
+                        <input type="text" id="people-search" placeholder="Search people..." oninput="filterList('people', this.value)" style="flex:1; padding:6px 10px; border-radius:6px; border:1px solid #333; background:#0f3460; color:#fff; font-size:13px;">
+                        <button type="button" class="btn btn-secondary" onclick="toggleAll('people', true)">Select All</button>
+                        <button type="button" class="btn btn-secondary" onclick="toggleAll('people', false)">Deselect All</button>
+                    </div>
+                    
+                    {% if people %}
+                    <div class="people-grid">
+                        {% for pid, name in people %}
+                        <div class="person-item">
+                            <input type="checkbox" id="p{{ pid }}" name="people" value="{{ pid }}"
+                                   {% if pid in selected_people %}checked{% endif %}>
+                            <img src="{{ url_for('thumb', person_id=pid) }}" alt="{{ name }}" onerror="this.style.display='none'">
+                            <label for="p{{ pid }}">{{ name }}</label>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <div class="info-box">No people found. Make sure Immich is reachable and the API key is valid.</div>
+                    {% endif %}
+                </div>
+            </details>
+        </div>
+        
+        <div class="card">
+            <details>
+                <summary>
+                    <span class="section-header">📁 Albums to Display</span>
+                </summary>
+                <div class="collapsible-content">
+                    <p class="section-title">Select albums — leave all unchecked to show all photos</p>
+                    <div style="margin-bottom:10px; display:flex; gap:8px; align-items:center">
+                        <input type="text" id="albums-search" placeholder="Search albums..." oninput="filterList('albums', this.value)" style="flex:1; padding:6px 10px; border-radius:6px; border:1px solid #333; background:#0f3460; color:#fff; font-size:13px;">
+                        <button type="button" class="btn btn-secondary" onclick="toggleAll('albums', true)">Select All</button>
+                        <button type="button" class="btn btn-secondary" onclick="toggleAll('albums', false)">Deselect All</button>
+                    </div>
+
+                    {% if albums %}
+                    <div class="people-grid">
+                        {% for aid, name in albums %}
+                        <div class="person-item">
+                            <input type="checkbox" id="a{{ aid }}" name="albums" value="{{ aid }}"
+                                   {% if aid in selected_albums %}checked{% endif %}>
+                            <label for="a{{ aid }}">{{ name }}</label>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <div class="info-box">No albums found.</div>
+                    {% endif %}
+                </div>
+            </details>
+        </div>
+
+        <div class="card">
+            <h2>⏱️ Timing</h2>
+            <div class="form-group">
+                <label>Slide Interval (seconds)</label>
+                <input type="number" name="Interval" value="{{ general.get('Interval', 10) }}" min="5" max="300">
+            </div>
+            <div class="form-group">
+                <label>Transition Duration (seconds)</label>
+                <input type="number" name="TransitionDuration" value="{{ general.get('TransitionDuration', 2) }}" min="0" max="10" step="0.5">
+            </div>
+        </div>
+        
+        <div class="card">
+            <h2>🕐 Clock & Display</h2>
+            <div class="toggle-row">
+                <div class="toggle-item">
+                    <input type="checkbox" id="ShowClock" name="ShowClock" value="true" {% if general.get('ShowClock') %}checked{% endif %}>
+                    <label for="ShowClock">Show Clock</label>
+                </div>
+                <div class="toggle-item">
+                    <input type="checkbox" id="ShowPhotoDate" name="ShowPhotoDate" value="true" {% if general.get('ShowPhotoDate') %}checked{% endif %}>
+                    <label for="ShowPhotoDate">Show Photo Date</label>
+                </div>
+                <div class="toggle-item">
+                    <input type="checkbox" id="ShowAlbumName" name="ShowAlbumName" value="true" {% if general.get('ShowAlbumName') %}checked{% endif %}>
+                    <label for="ShowAlbumName">Show Album Name</label>
+                </div>
+                <div class="toggle-item">
+                    <input type="checkbox" id="ShowPeopleDesc" name="ShowPeopleDesc" value="true" {% if general.get('ShowPeopleDesc') %}checked{% endif %}>
+                    <label for="ShowPeopleDesc">Show People Names</label>
+                </div>
+                <div class="toggle-item">
+                    <input type="checkbox" id="ShowImageLocation" name="ShowImageLocation" value="true" {% if general.get('ShowImageLocation') %}checked{% endif %}>
+                    <label for="ShowImageLocation">Show Location</label>
+                </div>
+                <div class="toggle-item">
+                    <input type="checkbox" id="ShowWeatherDescription" name="ShowWeatherDescription" value="true" {% if general.get('ShowWeatherDescription') %}checked{% endif %}>
+                    <label for="ShowWeatherDescription">Show Weather</label>
+                </div>
+            </div>
+            <div class="form-group" style="margin-top: 15px;">
+                <label>Clock Format</label>
+                <input type="text" name="ClockFormat" value="{{ general.get('ClockFormat', 'HH:mm') }}" placeholder="HH:mm">
+            </div>
+            <div class="form-group">
+                <label>Layout</label>
+                <select name="Layout">
+                    <option value="splitview" {% if general.get('Layout') == 'splitview' %}selected{% endif %}>Split View</option>
+                    <option value="center" {% if general.get('Layout') == 'center' %}selected{% endif %}>Center</option>
+                    <option value="left" {% if general.get('Layout') == 'left' %}selected{% endif %}>Left</option>
+                    <option value="right" {% if general.get('Layout') == 'right' %}selected{% endif %}>Right</option>
+                </select>
+            </div>
+        </div>
+        
+        <div class="button-row">
+            <button type="submit" class="btn btn-primary">💾 Save & Restart</button>
+            <button type="button" class="btn btn-secondary" onclick="location.reload()">↺ Discard</button>
+        </div>
+    </form>
+    
+    <div style="margin-top: 30px; text-align: center; color: #555; font-size: 0.8rem;">
+        ImmichFrame Editor · <a href="http://192.168.1.123:8080" target="_blank" style="color: #888;">Open Frame →</a>
+    </div>
+
+    <script>
+    function toggleAll(name, checked) {
+        document.querySelectorAll('input[name="' + name + '"]').forEach(function(el) {
+            el.checked = checked;
+        });
+    }
+
+    function filterList(type, query) {
+        var q = query.toLowerCase();
+        document.querySelectorAll('input[name="' + type + '"]').forEach(function(el) {
+            var label = el.nextElementSibling;
+            var text = label ? label.textContent.toLowerCase() : '';
+            el.closest('.person-item').style.display = text.includes(q) ? '' : 'none';
+        });
+    }
+    </script>
+</body>
+</html>

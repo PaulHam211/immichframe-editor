@@ -1,0 +1,50 @@
+# Example ImmichFrame Settings.yml
+# Copy this to Settings.yml and fill in your details
+# This file is just a reference — the editor reads/writes your actual Settings.yml
+
+General:
+  AuthenticationSecret: null
+  DownloadImages: false
+  RenewImagesDuration: 30
+  RefreshAlbumPeopleInterval: 12
+  PhotoDateFormat: MM/dd/yyyy
+  ImageLocationFormat: City,State,Country
+  WeatherApiKey: ''
+  UnitSystem: metric
+  WeatherLatLong: "51.694771,-0.1732002"
+  Webhook: null
+  Language: en
+  Interval: 10
+  TransitionDuration: 2
+  ShowClock: true
+  ClockFormat: HH:mm
+  ClockDateFormat: eee, MMM d
+  ShowProgressBar: false
+  ShowPhotoDate: true
+  ShowImageDesc: true
+  ShowPeopleDesc: true
+  ShowAlbumName: true
+  ShowImageLocation: true
+  PrimaryColor: "#f5deb3"
+  SecondaryColor: "#000000"
+  Style: none
+  BaseFontSize: 17px
+  ShowWeatherDescription: true
+  WeatherIconUrl: https://openweathermap.org/img/wn/{IconId}.png
+  ImageZoom: true
+  ImagePan: false
+  ImageFill: false
+  Layout: splitview
+Accounts:
+  # ⚠️ FILL IN YOUR IMMICH DETAILS BELOW
+  # The editor will read and update these automatically
+- ImmichServerUrl: http://192.168.1.70:2283
+  ApiKey: YOUR_API_KEY_HERE
+  ImagesFromDate: null
+  ShowMemories: false
+  ShowFavorites: false
+  ShowArchived: false
+  ImagesFromDays: null
+  Rating: null
+  People: []
+  Albums: []

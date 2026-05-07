@@ -1,0 +1,16 @@
+services:
+  frame-editor:
+    image: python:3.12-slim
+    container_name: immichframe-editor
+    restart: unless-stopped
+    ports:
+      - "8081:8081"
+    volumes:
+      - ./app:/app
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./config:/config
+    working_dir: /app
+    environment:
+      - PYTHONUNBUFFERED=1
+      - IMMICHFRAME_CONTAINER=${IMMICHFRAME_CONTAINER:-immichframe}
+    command: bash -c "pip install flask pyyaml docker --quiet && python app.py"
