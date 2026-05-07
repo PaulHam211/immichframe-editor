@@ -4,8 +4,8 @@ from flask import Flask, render_template, request, redirect, url_for, flash, Res
 app = Flask(__name__)
 app.secret_key = os.urandom(24)
 
-SETTINGS_FILE = '/config/Settings.yml'
-IMMICHFRAME_CONTAINER = 'immichframe'
+SETTINGS_FILE = os.environ.get('SETTINGS_FILE', '/config/Settings.yml')
+IMMICHFRAME_CONTAINER = os.environ.get('IMMICHFRAME_CONTAINER', 'immichframe')
 
 def get_settings_account():
     import yaml
@@ -103,7 +103,7 @@ def index():
 
 @app.route('/save', methods=['POST'])
 def save():
-    import yaml, subprocess
+    import yaml
 
     selected_people = request.form.getlist('people')
     selected_albums = request.form.getlist('albums')
@@ -125,7 +125,6 @@ def save():
     except Exception as e:
         flash(f'Saved but could not restart ImmichFrame: {e}', 'warning')
 
-    return redirect(url_for('index'))
     return redirect(url_for('index'))
 
 if __name__ == '__main__':
